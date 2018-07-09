@@ -40,6 +40,7 @@ class LocustRunner(object):
         self.hatching_greenlet = None
         self.exceptions = {}
         self.stats = global_stats
+        self.user_config = options.user_config
         
         # register listener that resets stats when hatching is complete
         def on_hatch_complete(user_count):
@@ -77,6 +78,8 @@ class LocustRunner(object):
                 locust.host = self.host
             if stop_timeout is not None:
                 locust.stop_timeout = stop_timeout
+            if self.user_config is not None:
+                locust.user_config = self.user_config
 
             # create locusts depending on weight
             percent = locust.weight / float(weight_sum)

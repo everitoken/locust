@@ -23,6 +23,22 @@ from .util.time import parse_timespan
 _internals = [Locust, HttpLocust]
 version = locust.__version__
 
+
+class UserOptionParser(OptionParser):
+    def _process_args(self, largs, rargs, values):
+        while rargs:
+            try:
+                OptionParser._process_args(self, largs, rargs, values)
+            except (BadOptionError, AmbiguousOptionError) as err:
+                self.largs.append(err.opt_str)
+
+
+class UserConfig(dict):
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
 def parse_options():
     """
     Handle command-line options with optparse.OptionParser.
@@ -31,7 +47,7 @@ def parse_options():
     """
 
     # Initialize
-    parser = OptionParser(usage="locust [options] [LocustClass [LocustClass2 ... ]]")
+    parser = UserOptionParser(usage="locust [options] [LocustClass [LocustClass2 ... ]]")
 
     parser.add_option(
         '-H', '--host',
@@ -367,8 +383,22 @@ def load_locustfile(path):
     locusts = dict(filter(is_locust, vars(imported).items()))
     return imported.__doc__, locusts
 
+def get_user_config(arguments):
+    user_config = {}
+    argc = len(arguments)
+    for i in range(0,argc,2):
+        if '--user-' in arguments[i]:
+            arg_name = arguments[i][7:]
+            arg_value = argument[i+1]
+            user_config[arg_name] = arg_value
+    return UserConfig(user_config)
+
 def main():
     parser, options, arguments = parse_options()
+
+    user_config = get_user_config(arguments)
+    setattr(options, 'user_config', user_config)
+    arguments = []
 
     # setup logging
     setup_logging(options.loglevel, options.logfile)
