@@ -5,7 +5,7 @@ import signal
 import socket
 import sys
 import time
-from optparse import OptionParser
+from optparse import OptionParser, BadOptionError, AmbiguousOptionError
 
 import gevent
 
@@ -389,7 +389,7 @@ def get_user_config(arguments):
     for i in range(0,argc,2):
         if '--user-' in arguments[i]:
             arg_name = arguments[i][7:]
-            arg_value = argument[i+1]
+            arg_value = arguments[i+1]
             user_config[arg_name] = arg_value
     return UserConfig(user_config)
 
